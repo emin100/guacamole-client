@@ -22,7 +22,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
   codesign --force --deep --sign - $DOWNLOAD_PATH/guacamole.app
   chmod +x $DOWNLOAD_PATH/guacamole.app
   rm -rf /Applications/guacamole.app
-  mv -f $DOWNLOAD_PATH/guacamole.app /Applications/
+  cp -r $DOWNLOAD_PATH/guacamole.app /Applications/
 else
   echo "Running on a non-macOS system."
   # Commands for other operating systems
