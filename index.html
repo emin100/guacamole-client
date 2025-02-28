@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Guacamole Client</title>
+
+  <link rel="stylesheet" href="https://static.jstree.com/3.3.17/assets/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://static.jstree.com/3.3.17/assets/dist/themes/default/style.min.css" />
+  <style>
+    .card {
+      height: 100%;
+    }
+
+
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .loader {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid var(--secondary-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="loading">
+    <div class="loader"></div>
+  </div>
+  <div class="container-fluid" style="height: 95vh;">
+
+    <div class="container mt-12">
+      <div id="error-message" class="alert alert-danger" role="alert" style="display: none;"></div>
+      <div id="loading"></div>
+    </div>
+
+    <div class="container mt-5" id="login-container">
+      <div class="row justify-content-center">
+        <div class="col-md-4">
+          <div class="card shadow">
+            <div class="card-body">
+
+              <form id="login-form">
+                <h1 class="h3 mb-3 fw-normal">Guacamole Login</h1>
+
+                <div class="form-group">
+                  <label for="url">URL</label>
+                  <input type="url" class="form-control" id="url" aria-describedby="urlHelp" placeholder="Guacamole URL" required>
+                                </div>
+                <div class="form-group">
+                  <label for="username">Username</label>
+                  <input type="text" class="form-control" id="username" placeholder="Username">
+                                </div>
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <input type="password" class="form-control" id="password" placeholder="Password">
+                                </div>
+                <div class="form-group">
+                  <label for="type">Guacamole DB</label>
+                  <select class="form-control" id="type" required>
+                                        <option value="mysql">Mysql</option>
+                                        <option value="postgresql">Postgresql</option>
+                                    </select>
+                </div>
+                <div class="custom-control custom-switch">
+                  <input type="checkbox" class="custom-control-input" id="save">
+                  <label class="custom-control-label" for="save">Save Data</label>
+                </div>
+                <hr class="my-4">
+                <button type="submit" class="btn btn-primary btn-lg btn-block">Submit</button>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12" id="main-container">
+      <div class="row">
+        <div class="col-md-2">
+          <h3>Connections</h3>
+          <div class="row">
+            <div class="col-md-5">
+              <button type="button" class="btn btn-success btn-sm" id="refreshButton"><i class="glyphicon glyphicon-refresh"></i></button>
+              <button type="button" class="btn btn-warning btn-sm" id="collapseButton"><i id="eye" class="glyphicon glyphicon-eye-open"></i></button>
+            </div>
+            <div class="col-md-7" style="text-align:right;">
+              <input type="text" value="" id="searchBox" placeholder="Search">
+				    </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 h-100" id="tree" style="height: 95ev; overflow: auto;"></div>
+          </div>
+        </div>
+        <div class="col-md-10 h-100" id="webview-container">
+          <div class="webview-container-r1 row" id="r1"></div>
+          <div class="webview-container-r2 row" id="r2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="node_modules/jstree/dist/jstree.min.js"></script>
+
+  <script src="renderer.js"></script>
+</body>
+
+</html>
