@@ -21,7 +21,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
   xattr -cr $DOWNLOAD_PATH/guacamole.app
   codesign --force --deep --sign - $DOWNLOAD_PATH/guacamole.app
   chmod +x $DOWNLOAD_PATH/guacamole.app
-
+  rm -rf /Applications/guacamole.app
   mv -f $DOWNLOAD_PATH/guacamole.app /Applications/
 else
   echo "Running on a non-macOS system."
