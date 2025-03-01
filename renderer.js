@@ -17,6 +17,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('login-container').style.display = 'grid';
   document.getElementById('main-container').style.display = 'none';
+  document.getElementById('main-container').style.height = '100%';
+  document.getElementById('tree').style.overflow = 'auto';
   document.getElementById('loading').style.display = 'none';
 
 

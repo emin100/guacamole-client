@@ -1,11 +1,11 @@
 {
-  "name": "guacamole",
-  "productName": "guacamole",
+  "name": "guacamole-client",
+  "productName": "guacamole-client",
   "description": "Guacamole Client",
   "keywords": [],
   "main": "./main.js",
   "version": "1.0.0",
-  "author": "mek",
+  "author": "MEK(Mehmet Emin Karakaş)",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -42,7 +42,8 @@
               "name": "guacamole-client"
             },
             "prerelease": false,
-            "draft": false
+            "draft": false,
+            "generateReleaseNotes": true
           }
         }
       ],

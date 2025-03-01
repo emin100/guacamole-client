@@ -1,32 +1,72 @@
-const { app, BrowserWindow, ipcMain, webContents, dialog } = require('electron');
-const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
+const {app, BrowserWindow, ipcMain, webContents, dialog, autoUpdater, Menu, MenuItem} = require('electron');
+const {updateElectronApp, UpdateSourceType} = require('update-electron-app');
 updateElectronApp({
   updateSource: {
     type: UpdateSourceType.ElectronPublicUpdateService,
     repo: 'emin100/guacamole-client'
   },
   updateInterval: '5 minute',
-  logger: require('electron-log')
+  logger: require('electron-log'),
+  notifyUser: true,
+  onNotifyUser: function (e) {
+    console.log(e);
+  }
 });
+
+autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  const dialogOpts = {
+    type: 'info',
+    buttons: ['Restart', 'Later'],
+    title: 'Application Update',
+    icon: require('electron').nativeImage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png')),
+    defaultId: 1,
+    message: process.platform === 'win32' ? releaseNotes : releaseName,
+    detail:
+      'A new version has been downloaded. Restart the application to apply the updates.'
+  }
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) autoUpdater.quitAndInstall()
+  });
+});
+
+autoUpdater.on('error', (message) => {
+  const dialogOpts = {
+    type: 'info',
+    title: 'Application Update',
+    icon: require('electron').nativeImage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png')),
+    message: 'Please install the new version.',
+    defaultId: 2,
+    detail:
+      'To install a newer version of client, please execute the command in command line. \n\n\n curl -s https://raw.githubusercontent.com/emin100/guacamole-client/refs/heads/main/tools/install.sh | sudo bash'
+  }
+
+  dialog.showMessageBox(dialogOpts).then((returnValue) => {
+    if (returnValue.response === 0) console.log("Download window closed")
+  });
+})
+
 const path = require('path');
 const https = require('https');
 const axios = require('axios');
 
+const image = require('electron').nativeImage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png'))
+app.dock.setIcon(image);
+
 let webviews = [];
 
+// app.enableRemoteModule = true;
 
-
-app.enableRemoteModule = true;
-
-const agent = new https.Agent({ rejectUnauthorized: false });
+const agent = new https.Agent({rejectUnauthorized: false});
 
 (async () => {
-  const { default: Store } = await import('electron-store');
+  const {default: Store} = await import('electron-store');
   store = new Store();
 })();
 
 
 let mainWindow;
+
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
@@ -39,18 +79,32 @@ async function createWindow() {
       sandbox: false,
       webviewTag: true,
       enableRemoteModule: true
-    },
+    }
   });
 
   mainWindow.loadFile('index.html');
 
 }
 
+
 app.whenReady().then(() => {
+
+  app.setAboutPanelOptions({
+    applicationName: app.name,
+    applicationVersion: app.getVersion(),
+    copyright: "© 2025 MEK",
+    credits: "Developed by Mehmet Emin Karakaş",
+    iconPath: 'ext/img/guacamole_client_icon_512x512.png'
+  });
+
+
+
+
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+
 });
 
 app.on('window-all-closed', () => {
@@ -63,7 +117,7 @@ ipcMain.handle('guacamole-login', async (_, credentials) => {
       `${credentials.url}/api/tokens`,
       `username=${credentials.username}&password=${credentials.password}`,
       {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         timeout: 10000,
         httpsAgent: agent,
       }
@@ -79,7 +133,7 @@ ipcMain.handle('get-connection-groups', async (_, tokens) => {
     const response = await axios.get(
       `${tokens.url}/api/session/data/${tokens.type}/connectionGroups/ROOT/tree`,
       {
-        headers: { 'Guacamole-Token': tokens.token },
+        headers: {'Guacamole-Token': tokens.token},
         timeout: 10000,
         httpsAgent: agent,
       }

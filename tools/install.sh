@@ -17,12 +17,15 @@ fi
 mkdir $DOWNLOAD_PATH
 if [[ "$(uname -s)" == "Darwin" ]]; then
   echo "Running on macOS."
-  curl -s https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$LATEST_RELEASE/guacamole-darwin-$(uname -m)-${LATEST_RELEASE:1}.zip > $DOWNLOAD_PATH/guacamole.app
+  FILE="guacamole-darwin-$(uname -m)-${LATEST_RELEASE:1}.zip"
+  curl -L -o $DOWNLOAD_PATH/$FILE https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$LATEST_RELEASE/$REPO_NAME-darwin-$(uname -m)-${LATEST_RELEASE:1}.zip
+  rm -rf $DOWNLOAD_PATH/$REPO_NAME.app
+  unzip $DOWNLOAD_PATH/$FILE -d $DOWNLOAD_PATH/
   xattr -cr $DOWNLOAD_PATH/guacamole.app
-  codesign --force --deep --sign - $DOWNLOAD_PATH/guacamole.app
-  chmod +x $DOWNLOAD_PATH/guacamole.app
-  #rm -rf /Applications/guacamole.app
-  mv $DOWNLOAD_PATH/guacamole.app /Applications/
+  codesign --force --deep --sign - $DOWNLOAD_PATH/$REPO_NAME.app
+  chmod +x $DOWNLOAD_PATH/$REPO_NAME.app
+  rm -rf /Applications/$REPO_NAME.app
+  mv -f $DOWNLOAD_PATH/$REPO_NAME.app /Applications/
 else
   echo "Running on a non-macOS system."
   # Commands for other operating systems
