@@ -1,5 +1,14 @@
-const {app, BrowserWindow, ipcMain, webContents, dialog, autoUpdater, Menu, MenuItem} = require('electron');
+const {app, BrowserWindow, ipcMain, webContents, dialog, autoUpdater } = require('electron');
 const {updateElectronApp, UpdateSourceType} = require('update-electron-app');
+
+
+const path = require('path');
+const https = require('https');
+const axios = require('axios');
+
+const nativeimage = require('electron').nativeImage;
+const iconf = nativeimage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png'));
+
 updateElectronApp({
   updateSource: {
     type: UpdateSourceType.ElectronPublicUpdateService,
@@ -18,7 +27,7 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     type: 'info',
     buttons: ['Restart', 'Later'],
     title: 'Application Update',
-    icon: require('electron').nativeImage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png')),
+    icon: iconf,
     defaultId: 1,
     message: process.platform === 'win32' ? releaseNotes : releaseName,
     detail:
@@ -34,7 +43,7 @@ autoUpdater.on('error', (message) => {
   const dialogOpts = {
     type: 'info',
     title: 'Application Update',
-    icon: require('electron').nativeImage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png')),
+    icon: iconf,
     message: 'Please install the new version.',
     defaultId: 2,
     detail:
@@ -46,12 +55,7 @@ autoUpdater.on('error', (message) => {
   });
 })
 
-const path = require('path');
-const https = require('https');
-const axios = require('axios');
-
-const image = require('electron').nativeImage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png'))
-app.dock.setIcon(image);
+app.dock.setIcon(iconf);
 
 let webviews = [];
 
@@ -66,6 +70,7 @@ const agent = new https.Agent({rejectUnauthorized: false});
 
 
 let mainWindow;
+let tray;
 
 
 async function createWindow() {
