@@ -2,6 +2,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   let token = '';
   let menu_array = [];
   let write_all = false;
+  let tree_listener_active = false;
   let GUACAMOLE_URL = (await window.electronAPI.storeGet('url')) || 'http://localhost:8080/guacamole';
   let GUACAMOLE_TYPE = (await window.electronAPI.storeGet('type')) || 'mysql';
   let GUACAMOLE_USERNAME = (await window.electronAPI.storeGet('username')) || 'guacadmin';
@@ -17,9 +18,24 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('login-container').style.display = 'grid';
   document.getElementById('main-container').style.display = 'none';
-  document.getElementById('main-container').style.height = '100%';
-  document.getElementById('tree').style.overflow = 'auto';
+
   document.getElementById('loading').style.display = 'none';
+
+  function setScrollableHeight() {
+    const scrollableDiv = document.getElementById('tree');
+    const searchDiv = document.getElementById('search_bar');
+
+    const windowHeight = window.innerHeight;
+    const searchHeight = searchDiv.offsetHeight;
+    const scrollableHeight = windowHeight - searchHeight - 15;
+
+    // Set the height of the scrollable div
+    scrollableDiv.style.height = `${scrollableHeight}px`;
+  }
+
+  // Set height on page load and window resize
+  window.addEventListener('load', setScrollableHeight);
+  window.addEventListener('resize', setScrollableHeight);
 
 
   document.getElementById('refreshButton').addEventListener("click", async () => {
@@ -27,7 +43,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   });
 
   document.getElementById('collapseButton').addEventListener("click", async (e) => {
-    if (e.target.className == "glyphicon glyphicon-eye-open") {
+    if (e.target.className === "glyphicon glyphicon-eye-open") {
       document.getElementById('eye').className = "glyphicon glyphicon-eye-close";
       $('#tree').jstree(true).open_all();
     } else {
@@ -37,10 +53,30 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  document.getElementById('writeButton').addEventListener("click", (e) => {
+    write_all = !write_all;
+    change_button();
+  });
+
+  function change_button() {
+    const button = document.getElementById('writeButton');
+    button.blur();
+    button.classList.remove('active');
+    if (write_all) {
+      button.innerHTML='<i class="glyphicon glyphicon-pause"></i>Write selected console';
+      button.className = "btn btn-danger";
+
+    } else {
+      button.innerHTML='<i class="glyphicon glyphicon-play-circle"></i>Write all consoles';
+      button.className = "btn btn-success";
+    }
+  }
+
   document.addEventListener('keydown', async (event) => {
     if (event.metaKey && event.shiftKey && event.key.toLowerCase() === 'i') {
       event.preventDefault();
       write_all = !write_all;
+      change_button();
     } else {
       if (event.key === 'Tab') {
         event.preventDefault();
@@ -90,7 +126,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     GUACAMOLE_SAVE = document.getElementById('save').checked;
 
 
-
     if (GUACAMOLE_SAVE) {
       await window.electronAPI.storeSet('url', GUACAMOLE_URL);
       await window.electronAPI.storeSet('username', GUACAMOLE_USERNAME);
@@ -100,15 +135,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     await createMenu();
-    $('#tree').on("activate_node.jstree", function (e, data) {
-      if (data.hasOwnProperty('node')) {
-        if (data.node.id == 'conn_' + data.node.original.identifier) {
-          openWebview(data.node.original);
-        }
-      }
-    });
-
-
   });
 
   async function createMenuArray(obj, parent_name) {
@@ -116,12 +142,28 @@ window.addEventListener('DOMContentLoaded', async () => {
     const prefix = 'conn_';
     obj.forEach((group) => {
       if (group.hasOwnProperty('childConnectionGroups')) {
-        menu_array.push({ 'id': prefix_group + group.identifier, 'identifier': group.identifier, 'parent': parent_name, 'text': group.name });
+        menu_array.push({
+          'id': prefix_group + group.identifier,
+          'identifier': group.identifier,
+          'parent': parent_name,
+          'text': group.name
+        });
         createMenuArray(group.childConnectionGroups, prefix_group + group.identifier);
       } else {
-        menu_array.push({ 'id': prefix_group + group.identifier, 'identifier': group.identifier, 'parent': parent_name, 'text': group.name });
+        menu_array.push({
+          'id': prefix_group + group.identifier,
+          'identifier': group.identifier,
+          'parent': parent_name,
+          'text': group.name
+        });
         group.childConnections.forEach((conn) => {
-          menu_array.push({ 'id': prefix + conn.identifier, 'parent': prefix_group + group.identifier, 'identifier': conn.identifier, 'text': conn.name, "type": "file" });
+          menu_array.push({
+            'id': prefix + conn.identifier,
+            'parent': prefix_group + group.identifier,
+            'identifier': conn.identifier,
+            'text': conn.name,
+            "type": "file"
+          });
         });
 
       }
@@ -131,9 +173,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   async function createMenu() {
     try {
       showLoading(true);
-      token = await window.electronAPI.guacamoleLogin({ "url": GUACAMOLE_URL, "type": GUACAMOLE_TYPE, "username": GUACAMOLE_USERNAME, "password": GUACAMOLE_PASSWORD });
+      token = await window.electronAPI.guacamoleLogin({
+        "url": GUACAMOLE_URL,
+        "type": GUACAMOLE_TYPE,
+        "username": GUACAMOLE_USERNAME,
+        "password": GUACAMOLE_PASSWORD
+      });
 
-      let menu = await window.electronAPI.getConnectionGroups({ "url": GUACAMOLE_URL, "type": GUACAMOLE_TYPE, token });
+      let menu = await window.electronAPI.getConnectionGroups({"url": GUACAMOLE_URL, "type": GUACAMOLE_TYPE, token});
       menu_array = [];
       await createMenuArray(menu[4], '#');
 
@@ -145,8 +192,8 @@ window.addEventListener('DOMContentLoaded', async () => {
           'data': menu_array
         },
         "types": {
-          "default": { "valid_children": ["default", "file"] },
-          "file": { "icon": "glyphicon glyphicon-log-in", "valid_children": [] }
+          "default": {"valid_children": ["default", "file"]},
+          "file": {"icon": "glyphicon glyphicon-log-in", "valid_children": []}
         },
         "plugins": [
           "contextmenu", "dnd", "search",
@@ -156,7 +203,27 @@ window.addEventListener('DOMContentLoaded', async () => {
           "show_only_matches": true
         }
       });
-      $('#tree').jstree(true).close_all();
+      if (!tree_listener_active) {
+
+        $('#tree').one('keydown.jstree', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        });
+
+        $('#tree').on("activate_node.jstree", function (e, data) {
+          if (data.hasOwnProperty('node')) {
+            if (data.node.id === 'conn_' + data.node.original.identifier) {
+              if (data.event.originalEvent instanceof PointerEvent) {
+                openWebview(data.node.original);
+                data.instance.deselect_node(data.node);
+              }
+            }
+          }
+        });
+        tree_listener_active = true;
+      }
       showLoading(false);
     } catch (error) {
       showError(error.message);
@@ -172,17 +239,24 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 
   function openWebview(connection) {
-    const webviews = document.querySelectorAll(".webview-wrapper");
+    const r1 = document.getElementById('r1').querySelectorAll(".webview-wrapper").length;
+    const r2 = document.getElementById('r2').querySelectorAll(".webview-wrapper").length;
     let container = "";
-    const total = webviews.length;
-    if (total > 9) {
-      window.electronAPI.popUp({ "type": "info", "title": "Window Alert!", "message": "You've reached the maximum window size allowed!!!" });
+    if ((r1+r2) > 9) {
+      window.electronAPI.popUp({
+        "type": "info",
+        "title": "Window Alert!",
+        "message": "You've reached the maximum window size allowed!!!"
+      });
       return;
-    } else if (total < 5) {
+    } else if (r1 < 5) {
       container = document.getElementById('r1');
     } else {
       container = document.getElementById('r2');
     }
+
+
+
     const webviewId = `webview-${connection.identifier}-${Date.now()}`;
 
     const webviewWrapper = document.createElement('div');
@@ -206,6 +280,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     cbtns.innerHTML = '&times;';
     cbtn.appendChild(cbtns);
     cbtns.onclick = () => {
+
       webviewWrapper.remove();
       updateLayout();
     };
@@ -217,6 +292,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     webview.addEventListener("focus", (e) => {
       if (write_all) {
         write_all = false;
+        change_button();
       }
     });
 
@@ -237,7 +313,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   async function updateLayout() {
     const classTemp = "webview-wrapper card";
-    const total_h = (document.querySelectorAll(".webview-wrapper").length < 6) ? 100 : 50;
+    let total_h = (document.querySelectorAll(".webview-wrapper").length < 6) ? 92 : 46;
+    if(document.getElementById("r2").querySelectorAll(".webview-wrapper").length > 0 ) {
+      total_h = 46;
+    }
 
     for (let i = 1; i < 3; i++) {
       webviews = document.getElementById("r" + i).querySelectorAll(".webview-wrapper");

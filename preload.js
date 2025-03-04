@@ -23,7 +23,6 @@ window.addEventListener('DOMContentLoaded', () => {
 contextBridge.exposeInMainWorld('electronAPI', {
   guacamoleLogin: (credentials) => ipcRenderer.invoke('guacamole-login', credentials),
   getConnectionGroups: (tokens) => ipcRenderer.invoke('get-connection-groups', tokens),
-  getConnectionNodes: (tokens) => ipcRenderer.invoke('get-connection-nodes', tokens),
   storeGet: (key) => ipcRenderer.invoke('store-get', key),
   storeSet: (key, value) => ipcRenderer.invoke('store-set', key, value),
   storeDelete: (key) => ipcRenderer.invoke('store-delete', key),

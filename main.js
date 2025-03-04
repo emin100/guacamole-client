@@ -1,6 +1,6 @@
-const {app, BrowserWindow, ipcMain, webContents, dialog, autoUpdater } = require('electron');
+const {app, BrowserWindow, ipcMain, webContents, dialog, autoUpdater} = require('electron');
 const {updateElectronApp, UpdateSourceType} = require('update-electron-app');
-
+const { sendEvent,getClientId } = require('./analytics');
 
 const path = require('path');
 const https = require('https');
@@ -8,13 +8,21 @@ const axios = require('axios');
 
 const nativeimage = require('electron').nativeImage;
 const iconf = nativeimage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png'));
+const agent = new https.Agent({rejectUnauthorized: false});
+
+const os_info = require('os');
+
+let webviews = [];
+let mainWindow;
+let tray;
+
 
 updateElectronApp({
   updateSource: {
     type: UpdateSourceType.ElectronPublicUpdateService,
     repo: 'emin100/guacamole-client'
   },
-  updateInterval: '5 minute',
+  updateInterval: '30 minute',
   logger: require('electron-log'),
   notifyUser: true,
   onNotifyUser: function (e) {
@@ -57,21 +65,10 @@ autoUpdater.on('error', (message) => {
 
 app.dock.setIcon(iconf);
 
-let webviews = [];
-
-// app.enableRemoteModule = true;
-
-const agent = new https.Agent({rejectUnauthorized: false});
-
 (async () => {
   const {default: Store} = await import('electron-store');
   store = new Store();
 })();
-
-
-let mainWindow;
-let tray;
-
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
@@ -89,6 +86,16 @@ async function createWindow() {
 
   mainWindow.loadFile('index.html');
 
+  sendEvent('app_start', {
+      app_version: app.getVersion(),
+      os: process.platform,
+      client: getClientId(),
+      hostname: os_info.hostname(),
+      platform: os_info.platform(),
+      release: os_info.release(),
+      arch: os_info.arch(),
+  });
+
 }
 
 
@@ -103,13 +110,10 @@ app.whenReady().then(() => {
   });
 
 
-
-
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
-
 });
 
 app.on('window-all-closed', () => {
@@ -174,11 +178,6 @@ ipcMain.handle('key-event', async (event, data) => {
   webContents.getAllWebContents().forEach(wc => {
     if (wc.getType() === 'webview') {
       if (data.metaKey && data.key.toLowerCase() === "v") {
-        wc.executeJavaScript(`
-          
-        `).then((position) => {
-          console.log('Webview Position:', position);
-        });
         wc.sendInputEvent({
           type: 'mouseDown',
           button: 'left',
@@ -200,6 +199,5 @@ ipcMain.handle('key-event', async (event, data) => {
                 `);
       }
     }
-
   });
 });
