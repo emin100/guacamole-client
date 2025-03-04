@@ -38,6 +38,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('resize', setScrollableHeight);
 
 
+
   document.getElementById('refreshButton').addEventListener("click", async () => {
     await createMenu();
   });
@@ -223,7 +224,9 @@ window.addEventListener('DOMContentLoaded', async () => {
           }
         });
         tree_listener_active = true;
+
       }
+      setScrollableHeight();
       showLoading(false);
     } catch (error) {
       showError(error.message);
