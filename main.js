@@ -198,9 +198,8 @@ ipcMain.handle('key-event', async (event, data) => {
 ipcMain.handle('send-a-event', async (event, key) => {
 
   let user_id = store.get('client_id');
-  if (user_id) {
-      return user_id;
-  } else {
+  let user = store.get('username');
+  if (!user_id) {
       user_id = uuidv4();
       await store.set('client_id', user_id);
   }
@@ -209,6 +208,7 @@ ipcMain.handle('send-a-event', async (event, key) => {
       app_version: app.getVersion(),
       os: process.platform,
       client: user_id,
+      user: user,
       hostname: os_info.hostname(),
       platform: os_info.platform(),
       release: os_info.release(),

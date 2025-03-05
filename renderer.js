@@ -37,7 +37,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('load', setScrollableHeight);
   window.addEventListener('resize', setScrollableHeight);
 
-  window.electronAPI.sendAEvent();
 
   document.getElementById('refreshButton').addEventListener("click", async () => {
     await createMenu();
@@ -135,6 +134,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       await window.electronAPI.storeSet('save', GUACAMOLE_SAVE);
     }
 
+
     await createMenu();
   });
 
@@ -180,6 +180,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         "username": GUACAMOLE_USERNAME,
         "password": GUACAMOLE_PASSWORD
       });
+
+
+      await window.electronAPI.sendAEvent();
 
       let menu = await window.electronAPI.getConnectionGroups({"url": GUACAMOLE_URL, "type": GUACAMOLE_TYPE, token});
       menu_array = [];
