@@ -1,10 +1,12 @@
-const {app, BrowserWindow, ipcMain, webContents, dialog, autoUpdater} = require('electron');
+const {app, BrowserWindow, ipcMain,ipcRenderer, webContents, dialog, autoUpdater} = require('electron');
 const {updateElectronApp, UpdateSourceType} = require('update-electron-app');
-const { sendEvent,getClientId } = require('./analytics');
+const { sendEvent } = require('./analytics');
 
 const path = require('path');
 const https = require('https');
 const axios = require('axios');
+
+const { v4: uuidv4 } = require('uuid');
 
 const nativeimage = require('electron').nativeImage;
 const iconf = nativeimage.createFromPath(path.join(__dirname, 'ext/img/guacamole_client_icon_512x512.png'));
@@ -85,16 +87,6 @@ async function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
-
-  sendEvent('app_start', {
-      app_version: app.getVersion(),
-      os: process.platform,
-      client: getClientId(),
-      hostname: os_info.hostname(),
-      platform: os_info.platform(),
-      release: os_info.release(),
-      arch: os_info.arch(),
-  });
 
 }
 
@@ -199,5 +191,27 @@ ipcMain.handle('key-event', async (event, data) => {
                 `);
       }
     }
+  });
+});
+
+
+ipcMain.handle('send-a-event', async (event, key) => {
+
+  let user_id = store.get('client_id');
+  if (user_id) {
+      return user_id;
+  } else {
+      user_id = uuidv4();
+      await store.set('client_id', user_id);
+  }
+
+  sendEvent('app_start', {
+      app_version: app.getVersion(),
+      os: process.platform,
+      client: user_id,
+      hostname: os_info.hostname(),
+      platform: os_info.platform(),
+      release: os_info.release(),
+      arch: os_info.arch(),
   });
 });

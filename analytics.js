@@ -6,21 +6,9 @@ const path = require('path');
 const MEASUREMENT_ID = 'G-EZ6MPB43Q6';
 const API_SECRET = 'iuFDSAUBTbaTZTY2dkmAdA';
 
-const clientIdFile = path.join(__dirname, 'client_id.json');
-
-function getClientId() {
-    if (fs.existsSync(clientIdFile)) {
-        return JSON.parse(fs.readFileSync(clientIdFile, 'utf-8')).client_id;
-    } else {
-        const newClientId = uuidv4();
-        fs.writeFileSync(clientIdFile, JSON.stringify({ client_id: newClientId }, null, 2));
-        return newClientId;
-    }
-}
-
 async function sendEvent(eventName, eventParams = {}) {
     const payload = {
-        client_id: getClientId(),
+        client_id: eventParams.client,
         events: [{
             name: eventName,
             params: eventParams
@@ -37,4 +25,4 @@ async function sendEvent(eventName, eventParams = {}) {
     }
 }
 
-module.exports = { sendEvent,getClientId };
+module.exports = { sendEvent };

@@ -37,7 +37,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('load', setScrollableHeight);
   window.addEventListener('resize', setScrollableHeight);
 
-
+  window.electronAPI.sendAEvent();
 
   document.getElementById('refreshButton').addEventListener("click", async () => {
     await createMenu();

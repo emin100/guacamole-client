@@ -27,5 +27,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   storeSet: (key, value) => ipcRenderer.invoke('store-set', key, value),
   storeDelete: (key) => ipcRenderer.invoke('store-delete', key),
   keyEvent: (data) => ipcRenderer.invoke('key-event', data),
-  popUp: (data) => ipcRenderer.invoke('popup', data)
+  popUp: (data) => ipcRenderer.invoke('popup', data),
+  sendAEvent: () => ipcRenderer.invoke('send-a-event')
 })
