@@ -4,7 +4,7 @@
   "description": "Guacamole Client",
   "keywords": [],
   "main": "./main.js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "MEK(Mehmet Emin Karakaş)",
   "scripts": {
     "start": "electron-forge start",
