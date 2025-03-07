@@ -21,7 +21,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
   curl -L -o $DOWNLOAD_PATH/$FILE https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/$LATEST_RELEASE/$REPO_NAME-darwin-$(uname -m)-${LATEST_RELEASE:1}.zip
   rm -rf $DOWNLOAD_PATH/$REPO_NAME.app
   unzip $DOWNLOAD_PATH/$FILE -d $DOWNLOAD_PATH/
-  xattr -cr $DOWNLOAD_PATH/guacamole.app
+  xattr -cr $DOWNLOAD_PATH/$REPO_NAME.app
   codesign --force --deep --sign - $DOWNLOAD_PATH/$REPO_NAME.app
   chmod +x $DOWNLOAD_PATH/$REPO_NAME.app
   rm -rf /Applications/$REPO_NAME.app
